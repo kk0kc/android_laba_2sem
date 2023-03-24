@@ -1,5 +1,6 @@
-package com.example.androidlab2
+package com.example.androidlab2.data.core.interceptor
 
+import com.example.androidlab2.BuildConfig
 import okhttp3.Interceptor
 import okhttp3.Response
 

@@ -1,4 +1,4 @@
-package com.example.androidlab2
+package com.example.androidlab2.data.wheather.datasourse.remote.response
 
 import com.google.gson.annotations.SerializedName
 

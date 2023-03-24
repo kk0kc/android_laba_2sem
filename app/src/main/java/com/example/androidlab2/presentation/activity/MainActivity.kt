@@ -1,7 +1,9 @@
-package com.example.androidlab2
+package com.example.androidlab2.presentation.activity
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import com.example.androidlab2.presentation.fragment.MainFragment
+import com.example.androidlab2.R
 import com.example.androidlab2.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {

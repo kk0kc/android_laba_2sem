@@ -1,9 +1,7 @@
-package com.example.androidlab2
+package com.example.androidlab2.presentation.fragment
 
-import DataContainer
 import android.Manifest
 import android.content.pm.PackageManager
-import android.location.Location
 import android.os.Build
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -13,26 +11,27 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.SearchView
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.androidlab2.presentation.recycle.ListWeatherAdapter
+import com.example.androidlab2.R
 import com.example.androidlab2.databinding.FragmentMainBinding
+import com.example.androidlab2.domain.wheather.WeatherListInfo
+import com.example.androidlab2.presentation.fragment.viewmodel.MainViewModel
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.launch
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import retrofit2.HttpException
-import timber.log.Timber
 
 class MainFragment : Fragment(R.layout.fragment_main) {
     private var adapter: ListWeatherAdapter? = null
-    private var cityRep: List<City>? = null
     private var binding: FragmentMainBinding? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private val api = DataContainer.weatherApi
-    private var lat: Double? = null
-    private var lon: Double? = null
+    private val viewModel: MainViewModel by viewModels {
+        MainViewModel.Factory
+    }
+
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onViewCreated(
         view: View,
@@ -40,22 +39,27 @@ class MainFragment : Fragment(R.layout.fragment_main) {
     ) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentMainBinding.bind(view)
+        initAdapter()
+        observeViewModel()
+
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-        fusedLocationClient.lastLocation
-            .addOnSuccessListener { location: Location? ->
-                lat = location?.latitude
-                lon = location?.longitude}
+//        fusedLocationClient.lastLocation
+//            .addOnSuccessListener { location: Location? ->
+//                lat = location?.latitude
+//                lon = location?.longitude}
         val locationPermissionRequest = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
         ) { permissions ->
             when {
                 permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) -> {
-                    loadCities(lat, lon)
+                    viewModel.onLocationPermsIsGranted(true)
                 }
                 permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
-                    loadCities(lat, lon)
-                } else -> {
-                loadCities(51.5098,-0.1180)
+                    viewModel.onLocationPermsIsGranted(true)
+                }
+                else -> {
+                    viewModel.onLocationPermsIsGranted(false)
             }
             }
         }
@@ -64,7 +68,7 @@ class MainFragment : Fragment(R.layout.fragment_main) {
             search.setOnQueryTextListener(object: SearchView.OnQueryTextListener{
                     override fun onQueryTextSubmit(query: String?): Boolean {
                         if (query != null) {
-                           loadWeather(query)
+                            viewModel.onLoadClick(query)
                         }
                         return false
                     }
@@ -73,20 +77,60 @@ class MainFragment : Fragment(R.layout.fragment_main) {
                     }
                 }
             )
-            if (cityRep != null) {
-                val itemDecoration: RecyclerView.ItemDecoration =
-                    DividerItemDecoration(context, DividerItemDecoration.VERTICAL)
-                adapter = ListWeatherAdapter(cityRep) { city ->
+        }
+    }
+
+    private fun initAdapter() {
+        binding?.run {
+            val itemDecoration: RecyclerView.ItemDecoration =
+                DividerItemDecoration(context, DividerItemDecoration.VERTICAL)
+            adapter = ListWeatherAdapter{ city ->
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.container, DetailFragment.newInstance(city.name))
+                    .addToBackStack("MainFragment")
+                    .commit()
+            }
+            rvNearest.adapter = adapter
+            rvNearest.addItemDecoration(itemDecoration)
+            rvNearest.layoutManager = LinearLayoutManager(context)
+        }
+    }
+
+
+
+    private fun observeViewModel() {
+        with(viewModel) {
+            error.observe(viewLifecycleOwner){
+                if (it == null) return@observe
+                    showError()
+                }
+            adapter.observe(viewLifecycleOwner) {
+                    initAdapter()
+                }
+            location.observe(viewLifecycleOwner) {
+                getList()
+            }
+            weatherList.observe(viewLifecycleOwner) {
+                it?.let {
+                    submitList(it)
+                }
+            }
+            permission.observe(viewLifecycleOwner) {
+                onNeedLocation()
+            }
+            navigateToDetails.observe(viewLifecycleOwner) {
+                it?.let {
                     parentFragmentManager.beginTransaction()
-                        .replace(R.id.container, DetailFragment.newInstance(city.name))
+                        .replace(R.id.container, DetailFragment.newInstance(it))
                         .addToBackStack("MainFragment")
                         .commit()
                 }
-                rvNearest.adapter = adapter
-                rvNearest.addItemDecoration(itemDecoration)
-                rvNearest.layoutManager = LinearLayoutManager(context)
             }
+
         }
+    }
+    private fun submitList(weatherListInfo: List<WeatherListInfo>) {
+        adapter?.submitList(weatherListInfo)
     }
     private fun checkPermission(locationPermissionRequest: ActivityResultLauncher<Array<String>>) {
         if (ActivityCompat.checkSelfPermission(
@@ -104,36 +148,13 @@ class MainFragment : Fragment(R.layout.fragment_main) {
                 )
             )
             return
-        } else {
-            loadCities(51.5098,-0.1180)
-
+        }
+        else {
+            viewModel.onLocationPermsIsGranted(false)
         }
     }
-    private fun loadCities(lat: Double?, lot: Double?) : List<City>? {
-        var cities: CitiesResponse? = null
-        lifecycleScope.launch{
-            cities = api.getCities(lat, lot).also {
-                Timber.e("load city ${it.list[0].name}")
-                cityRep = it.list
-                Timber.e("cities ${cityRep?.size}")
-            }
-        }
-        Timber.e("cities2 ${cityRep?.size}")
-        return cities?.list
-    }
-    private fun loadWeather(city: String) {
-        lifecycleScope.launch {
-            try {
-                if (api.getWeather(city).name.isNotEmpty()) {
-                    parentFragmentManager.beginTransaction()
-                        .replace(R.id.container, DetailFragment.newInstance(city))
-                        .addToBackStack("MainFragment")
-                        .commit()
-                }
-            } catch (e: HttpException) {
-                Snackbar.make(requireView(), "Not found", Snackbar.LENGTH_LONG).show()
-            }
 
-        }
+    private fun showError() {
+        Snackbar.make(requireView(), "Not found", Snackbar.LENGTH_LONG).show()
     }
 }
