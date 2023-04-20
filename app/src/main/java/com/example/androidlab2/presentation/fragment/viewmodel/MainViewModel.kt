@@ -3,12 +3,11 @@ package com.example.androidlab2.presentation.fragment.viewmodel
 import androidx.lifecycle.*
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.androidlab2.di.DataContainer
 import com.example.androidlab2.domain.location.GetLocationUseCase
-import com.example.androidlab2.domain.location.Location
+import com.example.androidlab2.domain.location.model.Location
 import com.example.androidlab2.domain.wheather.GetWeatherByNameUseCase
 import com.example.androidlab2.domain.wheather.GetWeatherListUseCase
-import com.example.androidlab2.domain.wheather.WeatherListInfo
+import com.example.androidlab2.domain.wheather.model.WeatherListInfo
 import com.example.androidlab2.presentation.recycle.ListWeatherAdapter
 import kotlinx.coroutines.launch
 
@@ -116,12 +115,13 @@ class MainViewModel(
         private const val LATITUDE = 51.30
         private const val LONGITUDE = 00.07
 
-        val Factory: ViewModelProvider.Factory = viewModelFactory {
+        fun provideFactory(
+                weatherByNameUseCase: GetWeatherByNameUseCase,
+                weatherListUseCase: GetWeatherListUseCase,
+                locationUseCase: GetLocationUseCase
+        ): ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                val useCaseByName = DataContainer.weatherByNameUseCase
-                val useCaseList = DataContainer.weatherListInfo
-                val useCaseLocation = DataContainer.locationUseCase
-                MainViewModel(useCaseByName, useCaseList, useCaseLocation)
+                MainViewModel(weatherByNameUseCase, weatherListUseCase, locationUseCase)
             }
         }
     }

@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.example.androidlab2.databinding.ItemCityBinding
-import com.example.androidlab2.domain.wheather.WeatherListInfo
+import com.example.androidlab2.domain.wheather.model.WeatherListInfo
 
 class ViewWeatherHolder(
     private val binding: ItemCityBinding,

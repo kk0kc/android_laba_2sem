@@ -1,6 +1,7 @@
 package com.example.androidlab2.presentation.fragment
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -15,22 +16,43 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.androidlab2.App
 import com.example.androidlab2.presentation.recycle.ListWeatherAdapter
 import com.example.androidlab2.R
 import com.example.androidlab2.databinding.FragmentMainBinding
-import com.example.androidlab2.domain.wheather.WeatherListInfo
+import com.example.androidlab2.domain.location.GetLocationUseCase
+import com.example.androidlab2.domain.wheather.GetWeatherByNameUseCase
+import com.example.androidlab2.domain.wheather.GetWeatherListUseCase
+import com.example.androidlab2.domain.wheather.model.WeatherListInfo
 import com.example.androidlab2.presentation.fragment.viewmodel.MainViewModel
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import javax.inject.Inject
 
 class MainFragment : Fragment(R.layout.fragment_main) {
     private var adapter: ListWeatherAdapter? = null
     private var binding: FragmentMainBinding? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+
+    @Inject
+    lateinit var weatherByNameUseCase: GetWeatherByNameUseCase
+
+    @Inject
+    lateinit var weatherListUseCase: GetWeatherListUseCase
+
+    @Inject
+    lateinit var locationUseCase: GetLocationUseCase
+
     private val viewModel: MainViewModel by viewModels {
-        MainViewModel.Factory
+        MainViewModel.provideFactory(weatherByNameUseCase, weatherListUseCase, locationUseCase)
     }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        App.appComponent.injectMain(this)
+        super.onCreate(savedInstanceState)
+    }
+
 
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onViewCreated(
@@ -98,6 +120,7 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
 
 
+    @SuppressLint("SuspiciousIndentation")
     private fun observeViewModel() {
         with(viewModel) {
             error.observe(viewLifecycleOwner){
@@ -156,5 +179,9 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
     private fun showError() {
         Snackbar.make(requireView(), "Not found", Snackbar.LENGTH_LONG).show()
+    }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        binding = null
     }
 }

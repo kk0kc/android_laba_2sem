@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil.ItemCallback
 import androidx.recyclerview.widget.ListAdapter
 import com.example.androidlab2.databinding.ItemCityBinding
-import com.example.androidlab2.domain.wheather.WeatherListInfo
+import com.example.androidlab2.domain.wheather.model.WeatherListInfo
 
 class ListWeatherAdapter(
     private val onItemClick: (WeatherListInfo) -> Unit

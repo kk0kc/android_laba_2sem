@@ -3,8 +3,8 @@ package com.example.androidlab2.data.wheather
 import com.example.androidlab2.data.wheather.datasourse.remote.WeatherApi
 import com.example.androidlab2.data.wheather.mapper.toWeatherInfo
 import com.example.androidlab2.data.wheather.mapper.toWeatherListInfo
-import com.example.androidlab2.domain.wheather.WeatherInfo
-import com.example.androidlab2.domain.wheather.WeatherListInfo
+import com.example.androidlab2.domain.wheather.model.WeatherInfo
+import com.example.androidlab2.domain.wheather.model.WeatherListInfo
 import com.example.androidlab2.domain.wheather.WeatherRepository
 
 class WeatherRepositoryImpl(

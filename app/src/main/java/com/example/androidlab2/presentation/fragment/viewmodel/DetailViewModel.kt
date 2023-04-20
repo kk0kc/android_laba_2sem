@@ -3,9 +3,8 @@ package com.example.androidlab2.presentation.fragment.viewmodel
 import androidx.lifecycle.*
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.androidlab2.di.DataContainer
 import com.example.androidlab2.domain.wheather.GetWeatherByNameUseCase
-import com.example.androidlab2.domain.wheather.WeatherInfo
+import com.example.androidlab2.domain.wheather.model.WeatherInfo
 import kotlinx.coroutines.launch
 
 class DetailViewModel(
@@ -38,10 +37,11 @@ class DetailViewModel(
         }
     }
     companion object {
-        val Factory: ViewModelProvider.Factory = viewModelFactory {
+        fun provideFactory(
+            weatherByNameUseCase: GetWeatherByNameUseCase
+        ): ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                val useCaseByName = DataContainer.weatherByNameUseCase
-                DetailViewModel(useCaseByName)
+                DetailViewModel(weatherByNameUseCase)
             }
         }
     }

@@ -6,16 +6,27 @@ import androidx.fragment.app.Fragment
 import android.view.View
 import androidx.fragment.app.viewModels
 import coil.load
+import com.example.androidlab2.App
 import com.example.androidlab2.R
 import com.example.androidlab2.databinding.FragmentDetailBinding
+import com.example.androidlab2.domain.wheather.GetWeatherByNameUseCase
 import com.example.androidlab2.presentation.fragment.viewmodel.DetailViewModel
+import javax.inject.Inject
 
 class
 DetailFragment : Fragment(R.layout.fragment_detail) {
     private var binding: FragmentDetailBinding? = null
+
+    @Inject
+    lateinit var weatherByNameUseCase: GetWeatherByNameUseCase
+
     private val viewModel: DetailViewModel by viewModels {
-        DetailViewModel.Factory
+        DetailViewModel.provideFactory(weatherByNameUseCase)
 }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        App.appComponent.injectDetail(this)
+        super.onCreate(savedInstanceState)
+    }
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(
         view: View,
@@ -50,6 +61,12 @@ DetailFragment : Fragment(R.layout.fragment_detail) {
             }
         }
     }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        binding = null
+    }
+
     companion object{
         private const val CITY_NAME = "city_name"
         fun newInstance(city: String) = DetailFragment().apply {

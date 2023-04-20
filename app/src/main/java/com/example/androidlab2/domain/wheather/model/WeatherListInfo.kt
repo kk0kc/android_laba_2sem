@@ -1,4 +1,4 @@
-package com.example.androidlab2.domain.wheather
+package com.example.androidlab2.domain.wheather.model
 
 import androidx.annotation.ColorRes
 

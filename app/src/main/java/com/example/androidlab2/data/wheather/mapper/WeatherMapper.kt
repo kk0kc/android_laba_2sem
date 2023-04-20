@@ -3,8 +3,8 @@ package com.example.androidlab2.data.wheather.mapper
 import com.example.androidlab2.data.wheather.datasourse.remote.response.CitiesResponse
 import com.example.androidlab2.R
 import com.example.androidlab2.data.wheather.datasourse.remote.response.WeatherResponse
-import com.example.androidlab2.domain.wheather.WeatherInfo
-import com.example.androidlab2.domain.wheather.WeatherListInfo
+import com.example.androidlab2.domain.wheather.model.WeatherInfo
+import com.example.androidlab2.domain.wheather.model.WeatherListInfo
 
 fun WeatherResponse.toWeatherInfo(): WeatherInfo = WeatherInfo(
     id = id,
