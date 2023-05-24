@@ -6,15 +6,16 @@ import com.example.androidlab2.data.wheather.mapper.toWeatherListInfo
 import com.example.androidlab2.domain.wheather.model.WeatherInfo
 import com.example.androidlab2.domain.wheather.model.WeatherListInfo
 import com.example.androidlab2.domain.wheather.WeatherRepository
+import javax.inject.Inject
 
-class WeatherRepositoryImpl(
+class WeatherRepositoryImpl @Inject constructor(
     private val api: WeatherApi
 ): WeatherRepository {
     override suspend fun getWeatherById(id: Int): WeatherInfo {
         return api.getWeather(id).toWeatherInfo()
     }
 
-    override suspend fun getWeatherByName(name: String): WeatherInfo {
+    override suspend fun getWeatherByName(name: String?): WeatherInfo {
         return api.getWeather(name).toWeatherInfo()
     }
 

@@ -6,27 +6,22 @@ import androidx.fragment.app.Fragment
 import android.view.View
 import androidx.fragment.app.viewModels
 import coil.load
-import com.example.androidlab2.App
 import com.example.androidlab2.R
 import com.example.androidlab2.databinding.FragmentDetailBinding
-import com.example.androidlab2.domain.wheather.GetWeatherByNameUseCase
 import com.example.androidlab2.presentation.fragment.viewmodel.DetailViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
-class
-DetailFragment : Fragment(R.layout.fragment_detail) {
+@AndroidEntryPoint
+class DetailFragment : Fragment(R.layout.fragment_detail) {
     private var binding: FragmentDetailBinding? = null
 
     @Inject
-    lateinit var weatherByNameUseCase: GetWeatherByNameUseCase
-
+    lateinit var viewModelFactory: DetailViewModel.DetailViewModelFactory
     private val viewModel: DetailViewModel by viewModels {
-        DetailViewModel.provideFactory(weatherByNameUseCase)
-}
-    override fun onCreate(savedInstanceState: Bundle?) {
-        App.appComponent.injectDetail(this)
-        super.onCreate(savedInstanceState)
+        DetailViewModel.provideFactory(viewModelFactory, arguments?.getString(CITY_NAME).toString())
     }
+
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(
         view: View,
@@ -34,10 +29,10 @@ DetailFragment : Fragment(R.layout.fragment_detail) {
     ) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentDetailBinding.bind(view)
-        var city = arguments?.getString(CITY_NAME)
-        viewModel.getWeatherInCity(city!!)
+        viewModel.getWeatherInCity()
         observeViewModel()
     }
+
     private fun observeViewModel() {
         with(viewModel) {
             weather.observe(viewLifecycleOwner) {
@@ -50,7 +45,7 @@ DetailFragment : Fragment(R.layout.fragment_detail) {
                     tmin.text = "Min temperature: " + it.tempMin.toString()
                     windspeed.text = "Wind speed: " + it.windSpeed.toString()
                     pressure.text = "Pressure: " + it.pressure.toString()
-                    feelslike.text= "Feels like: " + it.feelsLike.toString()
+                    feelslike.text = "Feels like: " + it.feelsLike.toString()
                     gust.text = "Gust: " + it.gust.toString()
                     icon.load("https://openweathermap.org/img/w/${it.icon}.png")
                 }
@@ -67,7 +62,7 @@ DetailFragment : Fragment(R.layout.fragment_detail) {
         binding = null
     }
 
-    companion object{
+    companion object {
         private const val CITY_NAME = "city_name"
         fun newInstance(city: String) = DetailFragment().apply {
             arguments = Bundle().apply {

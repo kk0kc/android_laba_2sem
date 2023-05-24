@@ -16,40 +16,25 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.androidlab2.App
 import com.example.androidlab2.presentation.recycle.ListWeatherAdapter
 import com.example.androidlab2.R
 import com.example.androidlab2.databinding.FragmentMainBinding
-import com.example.androidlab2.domain.location.GetLocationUseCase
-import com.example.androidlab2.domain.wheather.GetWeatherByNameUseCase
-import com.example.androidlab2.domain.wheather.GetWeatherListUseCase
 import com.example.androidlab2.domain.wheather.model.WeatherListInfo
 import com.example.androidlab2.presentation.fragment.viewmodel.MainViewModel
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainFragment : Fragment(R.layout.fragment_main) {
     private var adapter: ListWeatherAdapter? = null
     private var binding: FragmentMainBinding? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private val viewModel: MainViewModel by viewModels()
 
-    @Inject
-    lateinit var weatherByNameUseCase: GetWeatherByNameUseCase
-
-    @Inject
-    lateinit var weatherListUseCase: GetWeatherListUseCase
-
-    @Inject
-    lateinit var locationUseCase: GetLocationUseCase
-
-    private val viewModel: MainViewModel by viewModels {
-        MainViewModel.provideFactory(weatherByNameUseCase, weatherListUseCase, locationUseCase)
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        App.appComponent.injectMain(this)
         super.onCreate(savedInstanceState)
     }
 
@@ -66,10 +51,6 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-//        fusedLocationClient.lastLocation
-//            .addOnSuccessListener { location: Location? ->
-//                lat = location?.latitude
-//                lon = location?.longitude}
         val locationPermissionRequest = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
         ) { permissions ->
@@ -77,27 +58,30 @@ class MainFragment : Fragment(R.layout.fragment_main) {
                 permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) -> {
                     viewModel.onLocationPermsIsGranted(true)
                 }
+
                 permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
                     viewModel.onLocationPermsIsGranted(true)
                 }
+
                 else -> {
                     viewModel.onLocationPermsIsGranted(false)
-            }
+                }
             }
         }
         checkPermission(locationPermissionRequest)
         binding?.run {
-            search.setOnQueryTextListener(object: SearchView.OnQueryTextListener{
-                    override fun onQueryTextSubmit(query: String?): Boolean {
-                        if (query != null) {
-                            viewModel.onLoadClick(query)
-                        }
-                        return false
+            search.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                override fun onQueryTextSubmit(query: String?): Boolean {
+                    if (query != null) {
+                        viewModel.onLoadClick(query)
                     }
-                    override fun onQueryTextChange(newText: String?): Boolean {
-                        return false
-                    }
+                    return false
                 }
+
+                override fun onQueryTextChange(newText: String?): Boolean {
+                    return false
+                }
+            }
             )
         }
     }
@@ -106,7 +90,7 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         binding?.run {
             val itemDecoration: RecyclerView.ItemDecoration =
                 DividerItemDecoration(context, DividerItemDecoration.VERTICAL)
-            adapter = ListWeatherAdapter{ city ->
+            adapter = ListWeatherAdapter { city ->
                 parentFragmentManager.beginTransaction()
                     .replace(R.id.container, DetailFragment.newInstance(city.name))
                     .addToBackStack("MainFragment")
@@ -119,17 +103,16 @@ class MainFragment : Fragment(R.layout.fragment_main) {
     }
 
 
-
     @SuppressLint("SuspiciousIndentation")
     private fun observeViewModel() {
         with(viewModel) {
-            error.observe(viewLifecycleOwner){
+            error.observe(viewLifecycleOwner) {
                 if (it == null) return@observe
-                    showError()
-                }
+                showError()
+            }
             adapter.observe(viewLifecycleOwner) {
-                    initAdapter()
-                }
+                initAdapter()
+            }
             location.observe(viewLifecycleOwner) {
                 getList()
             }
@@ -152,9 +135,11 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
         }
     }
+
     private fun submitList(weatherListInfo: List<WeatherListInfo>) {
         adapter?.submitList(weatherListInfo)
     }
+
     private fun checkPermission(locationPermissionRequest: ActivityResultLauncher<Array<String>>) {
         if (ActivityCompat.checkSelfPermission(
                 requireContext(),
@@ -171,8 +156,7 @@ class MainFragment : Fragment(R.layout.fragment_main) {
                 )
             )
             return
-        }
-        else {
+        } else {
             viewModel.onLocationPermsIsGranted(false)
         }
     }
@@ -180,6 +164,7 @@ class MainFragment : Fragment(R.layout.fragment_main) {
     private fun showError() {
         Snackbar.make(requireView(), "Not found", Snackbar.LENGTH_LONG).show()
     }
+
     override fun onDestroyView() {
         super.onDestroyView()
         binding = null

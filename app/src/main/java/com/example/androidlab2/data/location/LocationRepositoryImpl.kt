@@ -5,8 +5,9 @@ import com.example.androidlab2.domain.location.model.Location
 import com.example.androidlab2.domain.location.LocationRepository
 import com.google.android.gms.location.FusedLocationProviderClient
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 
-class LocationRepositoryImpl(
+class LocationRepositoryImpl @Inject constructor(
     private val fusedLocationProviderClient: FusedLocationProviderClient
 ) : LocationRepository {
 

@@ -1,17 +1,18 @@
 package com.example.androidlab2.presentation.fragment.viewmodel
 
 import androidx.lifecycle.*
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.androidlab2.domain.location.GetLocationUseCase
 import com.example.androidlab2.domain.location.model.Location
 import com.example.androidlab2.domain.wheather.GetWeatherByNameUseCase
 import com.example.androidlab2.domain.wheather.GetWeatherListUseCase
 import com.example.androidlab2.domain.wheather.model.WeatherListInfo
 import com.example.androidlab2.presentation.recycle.ListWeatherAdapter
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MainViewModel(
+@HiltViewModel
+class MainViewModel @Inject constructor(
     private val getWeatherByNameUseCase: GetWeatherByNameUseCase,
     private val getWeatherListUseCase: GetWeatherListUseCase,
     private val getLocationUseCase: GetLocationUseCase
@@ -114,15 +115,5 @@ class MainViewModel(
     companion object {
         private const val LATITUDE = 51.30
         private const val LONGITUDE = 00.07
-
-        fun provideFactory(
-                weatherByNameUseCase: GetWeatherByNameUseCase,
-                weatherListUseCase: GetWeatherListUseCase,
-                locationUseCase: GetLocationUseCase
-        ): ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                MainViewModel(weatherByNameUseCase, weatherListUseCase, locationUseCase)
-            }
-        }
     }
 }
