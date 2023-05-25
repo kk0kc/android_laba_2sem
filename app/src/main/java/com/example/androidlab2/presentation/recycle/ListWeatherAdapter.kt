@@ -11,11 +11,15 @@ class ListWeatherAdapter(
     private val onItemClick: (WeatherListInfo) -> Unit
 ) : ListAdapter<WeatherListInfo, ViewWeatherHolder>(
     object : ItemCallback<WeatherListInfo>() {
-    override fun areItemsTheSame(oldItem: WeatherListInfo, newItem: WeatherListInfo): Boolean =
-        oldItem.id == newItem.id
-    override fun areContentsTheSame(oldItem: WeatherListInfo, newItem: WeatherListInfo): Boolean =
-        oldItem == newItem
-}) {
+        override fun areItemsTheSame(oldItem: WeatherListInfo, newItem: WeatherListInfo): Boolean =
+            oldItem.id == newItem.id
+
+        override fun areContentsTheSame(
+            oldItem: WeatherListInfo,
+            newItem: WeatherListInfo
+        ): Boolean =
+            oldItem == newItem
+    }) {
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
@@ -25,7 +29,8 @@ class ListWeatherAdapter(
             parent,
             false
         ),
-        onItemClick = onItemClick)
+        onItemClick = onItemClick
+    )
 
 
     override fun onBindViewHolder(holder: ViewWeatherHolder, position: Int) =

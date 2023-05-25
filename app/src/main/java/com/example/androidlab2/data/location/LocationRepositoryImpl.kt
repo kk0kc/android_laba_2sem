@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import com.example.androidlab2.domain.location.model.Location
 import com.example.androidlab2.domain.location.LocationRepository
 import com.google.android.gms.location.FusedLocationProviderClient
-import kotlinx.coroutines.tasks.await
+import io.reactivex.rxjava3.core.Single
 import javax.inject.Inject
 
 class LocationRepositoryImpl @Inject constructor(
@@ -12,14 +12,18 @@ class LocationRepositoryImpl @Inject constructor(
 ) : LocationRepository {
 
     @SuppressLint("MissingPermission")
-    override suspend fun getLocation(): Location? = fusedLocationProviderClient.lastLocation.await().let {
-        if (it != null) {
-            Location(
-                lat = it.latitude,
-                lon = it.longitude
+    override fun getLocation(): Single<Location> = Single.create { emitter ->
+        fusedLocationProviderClient.lastLocation.addOnSuccessListener {
+            emitter.onSuccess(
+                Location(
+                    lat = it.latitude,
+                    lon = it.longitude
+                )
             )
-        } else {
-            null
         }
+            .addOnFailureListener {
+                emitter.onError(it)
+            }
     }
 }
+

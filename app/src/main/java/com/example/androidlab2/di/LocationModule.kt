@@ -18,12 +18,13 @@ class LocationModule {
     @Provides
     fun provideFusedLocationClient(
         applicationContext: Context
-    ) : FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(applicationContext)
+    ): FusedLocationProviderClient =
+        LocationServices.getFusedLocationProviderClient(applicationContext)
 }
 
 @Module
 @InstallIn(ViewModelComponent::class)
-interface BindLocationModule{
+interface BindLocationModule {
     @Binds
     fun bindLocationRepository(
         locationRepositoryImpl: LocationRepositoryImpl

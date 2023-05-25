@@ -6,7 +6,9 @@ import com.example.androidlab2.domain.wheather.model.WeatherInfo
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import kotlinx.coroutines.launch
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.disposables.Disposable
+import io.reactivex.rxjava3.kotlin.subscribeBy
 
 class DetailViewModel @AssistedInject constructor(
     private val getWeatherByNameUseCase: GetWeatherByNameUseCase,
@@ -16,6 +18,8 @@ class DetailViewModel @AssistedInject constructor(
     private val _error = MutableLiveData<Throwable?>(null)
     val error: LiveData<Throwable?>
         get() = _error
+
+    private var weatherDisposable: Disposable? = null
 
 
     private val _weather = MutableLiveData<WeatherInfo?>(null)
@@ -29,15 +33,24 @@ class DetailViewModel @AssistedInject constructor(
 
 
     private fun loadWeather() {
-        viewModelScope.launch {
-            try {
-                getWeatherByNameUseCase.invoke(cityId).also { weather ->
-                    _weather.value = weather
+//        viewModelScope.launch {
+//            try {
+//                getWeatherByNameUseCase.invoke(cityId).also { weather ->
+//                    _weather.value = weather
+//                }
+//            } catch (error: Throwable) {
+//                _error.value = error
+//            }
+//        }
+        weatherDisposable = getWeatherByNameUseCase(cityId)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeBy(
+                onSuccess = { weatherInfo ->
+                    _weather.value = weatherInfo
+                }, onError = {error ->
+                    _error.value = error
                 }
-            } catch (error: Throwable) {
-                _error.value = error
-            }
-        }
+            )
     }
 
     @AssistedFactory

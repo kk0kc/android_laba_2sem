@@ -1,12 +1,13 @@
 package com.example.androidlab2.domain.wheather
 
 import com.example.androidlab2.domain.wheather.model.WeatherInfo
+import io.reactivex.rxjava3.core.Single
 import javax.inject.Inject
 
 class GetWeatherByNameUseCase @Inject constructor(
     private val weatherRepository: WeatherRepository
 ) {
-    suspend operator fun invoke(
+    operator fun invoke(
         name: String?
-    ): WeatherInfo = weatherRepository.getWeatherByName(name)
+    ): Single<WeatherInfo> = weatherRepository.getWeatherByName(name)
 }

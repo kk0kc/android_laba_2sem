@@ -25,12 +25,19 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import dagger.hilt.android.AndroidEntryPoint
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.core.BackpressureStrategy
+import io.reactivex.rxjava3.disposables.Disposable
+import io.reactivex.rxjava3.kotlin.Flowables
+import io.reactivex.rxjava3.kotlin.subscribeBy
+import java.util.concurrent.TimeUnit
 
 @AndroidEntryPoint
 class MainFragment : Fragment(R.layout.fragment_main) {
     private var adapter: ListWeatherAdapter? = null
     private var binding: FragmentMainBinding? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private var searchDisposable: Disposable? = null
     private val viewModel: MainViewModel by viewModels()
 
 
@@ -70,21 +77,37 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         }
         checkPermission(locationPermissionRequest)
         binding?.run {
-            search.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            searchDisposable?.dispose()
+            searchDisposable = search.observeQuery()
+                .filter { it.length > 2 }
+                .debounce(500L, TimeUnit.MILLISECONDS)
+                .distinctUntilChanged()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeBy(onNext = {
+                    viewModel.onLoadClick(it)
+                })
+        }
+    }
+
+    private fun SearchView.observeQuery() =
+        Flowables.create<String>(mode = BackpressureStrategy.LATEST) { emitter ->
+            setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(query: String?): Boolean {
-                    if (query != null) {
-                        viewModel.onLoadClick(query)
+                    query?.let {
+                        emitter.onComplete()
                     }
-                    return false
+                    return true
                 }
 
                 override fun onQueryTextChange(newText: String?): Boolean {
-                    return false
+                    newText?.let {
+                        emitter.onNext(it)
+                    }
+                    return true
                 }
-            }
-            )
+            })
         }
-    }
+
 
     private fun initAdapter() {
         binding?.run {

@@ -3,7 +3,7 @@ package com.example.androidlab2.data.core.interceptor
 import okhttp3.Interceptor
 import okhttp3.Response
 
-class MetricInterceptor: Interceptor {
+class MetricInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val original = chain.request()
         val newURL = original.url.newBuilder()
